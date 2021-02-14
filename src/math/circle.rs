@@ -7,20 +7,28 @@ pub struct Circle {
 }
 
 impl Circle {
-    pub fn new(x: f32, y: f32, radius: f32) -> Self {
-        Circle {
-            pos: PointF32 { x: x, y: y },
-            radius: radius,
-        }
+    pub fn new_from_pos(pos: PointF32, radius: f32) -> Self {
+        Circle { pos, radius }
     }
-    pub fn collides(self, other: &Circle) -> bool {
+
+    pub fn new(x: f32, y: f32, radius: f32) -> Self {
+        Circle::new_from_pos(PointF32 { x: x, y: y }, radius)
+    }
+
+    pub fn collides(&self, other: &Circle) -> bool {
         let delta = &self.pos - &other.pos;
         let d_sqr = delta.dot(&delta);
         let r_sum = &self.radius + &other.radius;
         return r_sum * r_sum <= d_sqr;
     }
 
-    pub fn contains(self, other: &Circle) -> bool {
+    pub fn contains_pos(&self, pos: &PointF32) -> bool {
+        let delta = &self.pos - &pos;
+        let d = delta.dot(&delta);
+        return d <= self.radius * self.radius;
+    }
+
+    pub fn contains(&self, other: &Circle) -> bool {
         let delta = &self.pos - &other.pos;
         let d = delta.dot(&delta).sqrt();
         return self.radius - other.radius > d;
@@ -32,7 +40,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_inside() {
+    fn test_contains() {
         {
             let c1 = Circle {
                 pos: { PointF32 { x: 1.0, y: 2.0 } },
@@ -79,5 +87,18 @@ mod tests {
             assert!(c2.contains(&c1));
             assert!(!c3.contains(&c1));
         }
+    }
+
+    #[test]
+    fn test_contains_pos() {
+        let c = Circle {
+            pos: PointF32::new(1.0, 2.0),
+            radius: 3.0,
+        };
+
+        assert!(c.contains_pos(&PointF32::new(1.0, 2.0)));
+        assert!(c.contains_pos(&PointF32::new(-1.0 + 0.2, 4.0 - 0.2)));
+
+        assert!(!c.contains_pos(&PointF32::new(-1.0 - 0.2, 4.0 + 0.2)));
     }
 }

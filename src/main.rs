@@ -1,4 +1,5 @@
 mod game;
+mod logic;
 mod math;
 mod stopwatch;
 

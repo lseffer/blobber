@@ -54,6 +54,25 @@ pub fn may_collide(
     return rect1.collides(&rect2);
 }
 
+pub fn collides_rect(circle: &Circle, rect: &Rect) -> bool {
+    if rect.bottom_left.x <= circle.pos.x && circle.pos.x <= rect.top_right.x {
+        return (circle.pos.y < rect.top_right.y
+            && circle.pos.y + circle.radius >= rect.bottom_left.y)
+            || (circle.pos.y > rect.bottom_left.y
+                && circle.pos.y - circle.radius <= rect.top_right.y);
+    } else if rect.bottom_left.y <= circle.pos.y && circle.pos.y <= rect.top_right.y {
+        return (circle.pos.x < rect.top_right.x
+            && circle.pos.x + circle.radius >= rect.bottom_left.x)
+            || (circle.pos.x > rect.bottom_left.x
+                && circle.pos.x - circle.radius <= rect.top_right.x);
+    } else {
+        return circle.contains_pos(&rect.bottom_left)
+            || circle.contains_pos(&rect.top_left())
+            || circle.contains_pos(&rect.top_right)
+            || circle.contains_pos(&rect.bottom_right());
+    }
+}
+
 pub fn collides_circle(
     circle1: (&Circle, &Velocity),
     circle2: (&Circle, &Velocity),
@@ -219,5 +238,27 @@ mod tests {
             ),
             Some(0.5)
         );
+    }
+
+    #[test]
+    fn test_collides_rect() {
+        let rect = Rect::new(PointF32::new(2.0, 1.0), PointF32::new(7.0, 4.0));
+        let c1 = Circle::new(3.0, 2.0, 0.75);
+        let c2 = Circle::new(5.0, 4.25, 0.75);
+        let c3 = Circle::new(5.0, 4.25, 100.0);
+        let c4 = Circle::new(7.5, 0.5, 2.0);
+        let c5 = Circle::new(1.0, 5.0, 2f32.sqrt() + 0.0001);
+
+        let c6 = Circle::new(1.0, 5.0, 2f32.sqrt() - 0.0001);
+        let c7 = Circle::new(4.0, -2.0, 2.5);
+
+        assert!(collides_rect(&c1, &rect));
+        assert!(collides_rect(&c2, &rect));
+        assert!(collides_rect(&c3, &rect));
+        assert!(collides_rect(&c4, &rect));
+        assert!(collides_rect(&c5, &rect));
+
+        assert!(!collides_rect(&c6, &rect));
+        assert!(!collides_rect(&c7, &rect));
     }
 }
