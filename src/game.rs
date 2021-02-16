@@ -1,6 +1,6 @@
 use femtovg;
 use std::time::Duration;
-use winit::event::{Event};
+use winit::event::Event;
 
 pub struct Renderer {}
 
