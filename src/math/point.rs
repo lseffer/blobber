@@ -7,6 +7,7 @@ pub struct Point<T> {
 }
 
 pub type PointF32 = Point<f32>;
+pub type PointU32 = Point<u32>;
 
 impl<T> Point<T>
 where

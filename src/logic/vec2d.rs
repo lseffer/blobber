@@ -1,3 +1,25 @@
+use crate::math::point::{PointF32, PointU32};
+use crate::math::rect::Rect;
+
+pub struct GridPos {
+    bounds: Rect,
+    quad_size: PointF32,
+}
+
+impl GridPos {
+    pub fn new(bounds: Rect, quad_size: PointF32) -> Self {
+        GridPos { bounds, quad_size }
+    }
+
+    pub fn grid_for(&self, pos: &PointF32) -> PointU32 {
+        let rel_pos = pos - &self.bounds.bottom_left;
+        PointU32 {
+            x: (rel_pos.x / self.quad_size.x) as u32,
+            y: (rel_pos.y / self.quad_size.y) as u32,
+        }
+    }
+}
+
 pub struct Vec2d<T> {
     n_x: u32,
     n_y: u32,

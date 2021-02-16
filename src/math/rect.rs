@@ -59,11 +59,12 @@ impl Rect {
             && (self.top_right.y >= other.bottom_left.y);
     }
 
+    pub fn center(&self) -> PointF32 {
+        self.bottom_left + self.size() * 0.5f32
+    }
+
     pub fn size(&self) -> PointF32 {
-        PointF32 {
-            x: self.top_right.x - self.bottom_left.x,
-            y: self.top_right.y - self.bottom_left.y,
-        }
+        self.top_right - self.bottom_left
     }
 
     pub fn top_left(&self) -> PointF32 {

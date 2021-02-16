@@ -1,11 +1,9 @@
-use super::vec2d::Vec2d;
+use super::vec2d::{GridPos, Vec2d};
 use crate::math::circle::Circle;
 use crate::math::collision;
-use crate::math::point::{Point, PointF32};
+use crate::math::point::{PointF32, PointU32};
 use crate::math::rect::Rect;
 use std::vec::Vec;
-
-type PointU32 = Point<u32>;
 
 pub trait GridObject {
     fn pos(&self) -> PointF32;
@@ -17,25 +15,6 @@ struct Quad<T> {
     bounds: Rect,
     object_bounds: Rect,
     objects: Vec<T>,
-}
-
-struct GridPos {
-    bounds: Rect,
-    quad_size: PointF32,
-}
-
-impl GridPos {
-    fn new(bounds: Rect, quad_size: PointF32) -> Self {
-        GridPos { bounds, quad_size }
-    }
-
-    fn grid_for(&self, pos: &PointF32) -> PointU32 {
-        let rel_pos = pos - &self.bounds.bottom_left;
-        Point {
-            x: (rel_pos.x / self.quad_size.x) as u32,
-            y: (rel_pos.y / self.quad_size.y) as u32,
-        }
-    }
 }
 
 pub struct LooseGrid<T> {
@@ -56,8 +35,8 @@ impl<T: GridObject> LooseGrid<T> {
             let y_f32 = y as f32;
             Quad {
                 bounds: Rect::new(
-                    Point::new(x_f32 * quad_size.x, y_f32 * quad_size.y),
-                    Point::new(x_f32 * quad_size.x, y_f32 * quad_size.y) + quad_size,
+                    PointF32::new(x_f32 * quad_size.x, y_f32 * quad_size.y),
+                    PointF32::new(x_f32 * quad_size.x, y_f32 * quad_size.y) + quad_size,
                 ),
                 object_bounds: Rect::new_empty(),
                 objects: Vec::<T>::new(),
@@ -245,47 +224,6 @@ mod tests {
                 alive: true,
             }
         );
-    }
-
-    macro_rules! assert_vec_eq {
-        ($left:ident, $right:ident) => {
-            if $left.len() != $right.len() {
-                println!("{:?} but expected {:?}", $left, $right);
-                panic!();
-            }
-
-            for x in &$left {
-                let mut found = false;
-
-                for y in &$right {
-                    if x == y {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if !found {
-                    println!("{:?} but expected {:?}", $left, $right);
-                    panic!();
-                }
-            }
-
-            for x in &$right {
-                let mut found = false;
-
-                for y in &$left {
-                    if x == y {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if !found {
-                    println!("{:?} but expected {:?}", $left, $right);
-                    panic!();
-                }
-            }
-        };
     }
 
     #[test]
