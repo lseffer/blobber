@@ -6,7 +6,6 @@ mod stopwatch;
 use femtovg::Color;
 use femtovg::{renderer::OpenGl, Canvas};
 use glutin::ContextBuilder;
-use resource::resource;
 use std::time::{Duration, Instant};
 use winit::{
     event::{Event, WindowEvent},
@@ -40,17 +39,12 @@ fn main() {
     let mut current_time = Instant::now();
     let mut render_time = Instant::now();
 
-    let mut g = game::init_game();
+    let mut game = game::Game::new();
     let mut canvas = Canvas::new(renderer).expect("Cannot create canvas");
-    let fonts = game::Fonts {
-        regular: canvas
-            .add_font_mem(&resource!("assets/Roboto-Regular.ttf"))
-            .expect("Cannot add font"),
-    };
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         let window = windowed_context.window();
-        g.handle_input(&event);
+        game.simulation.handle_input(&event);
         match event {
             Event::WindowEvent { ref event, .. } => match event {
                 WindowEvent::Resized(physical_size) => {
@@ -66,7 +60,7 @@ fn main() {
                 current_time = new_time;
                 accumulator += frame_time;
                 while accumulator >= dt {
-                    g.simulate(dt);
+                    game.simulation.simulate(dt);
                     t += dt;
                     accumulator -= dt;
                 }
@@ -90,7 +84,7 @@ fn main() {
                 );
                 canvas.save_with(|canvas| {
                     canvas.reset();
-                    g.render(canvas, &fonts);
+                    game.renderer.render(canvas);
                 });
                 canvas.flush();
                 windowed_context.swap_buffers().unwrap();

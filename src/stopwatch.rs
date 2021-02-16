@@ -1,6 +1,10 @@
-use crate::game::Fonts;
+use femtovg::FontId;
 use femtovg::{Align, Baseline, Canvas, Color, Paint, Renderer};
 use std::time::Instant;
+
+pub struct Fonts {
+    pub regular: FontId,
+}
 
 struct WatchHistory {
     history_count: usize,
