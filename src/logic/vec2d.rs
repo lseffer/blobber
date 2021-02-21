@@ -141,7 +141,7 @@ impl<'a, T> Iterator for Vec2dIterMut<'a, T> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]

@@ -1,6 +1,7 @@
 mod game;
 mod logic;
 mod math;
+mod simulation;
 mod stopwatch;
 
 use femtovg::Color;
@@ -19,7 +20,7 @@ fn main() {
     let (renderer, windowed_context) = {
         let wb = WindowBuilder::new()
             .with_inner_size(winit::dpi::PhysicalSize::new(1000, 600))
-            .with_title("femtovg demo");
+            .with_title("Blobber");
 
         let windowed_context = ContextBuilder::new()
             .with_vsync(false)
@@ -41,12 +42,17 @@ fn main() {
 
     let mut game = game::Game::new();
     let mut canvas = Canvas::new(renderer).expect("Cannot create canvas");
+
+    let mut keyboard_inputs = Vec::<winit::event::KeyboardInput>::new();
+
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         let window = windowed_context.window();
-        game.simulation.handle_input(&event);
         match event {
             Event::WindowEvent { ref event, .. } => match event {
+                WindowEvent::KeyboardInput { input, .. } => {
+                    keyboard_inputs.push(*input);
+                }
                 WindowEvent::Resized(physical_size) => {
                     windowed_context.resize(*physical_size);
                 }
@@ -60,7 +66,16 @@ fn main() {
                 current_time = new_time;
                 accumulator += frame_time;
                 while accumulator >= dt {
-                    game.simulation.simulate(dt);
+                    // TODO Should really go through some kind of "input layer" (that can be owned
+                    // by the game); for keybindings, etc..
+                    // But also because the inputs might be needed by some other layer, e.g.
+                    // a menu want to do something with them.
+                    // This can of course also just be gathered by 'game', even as early as when
+                    // the key is pressed.
+                    let simulation_inputs = game.handle_inputs(&keyboard_inputs);
+                    keyboard_inputs.clear();
+                    game.simulation
+                        .simulate(&simulation_inputs, dt.as_secs_f32());
                     t += dt;
                     accumulator -= dt;
                 }
@@ -82,9 +97,10 @@ fn main() {
                     size.height as u32,
                     Color::rgbf(255.0, 255.0, 255.0),
                 );
+                let timepoint = 0f32; // TODO
                 canvas.save_with(|canvas| {
                     canvas.reset();
-                    game.renderer.render(canvas);
+                    game.render(timepoint, canvas);
                 });
                 canvas.flush();
                 windowed_context.swap_buffers().unwrap();

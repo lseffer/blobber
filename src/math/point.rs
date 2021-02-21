@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, Mul, Sub, SubAssign};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Point<T> {
@@ -8,6 +8,12 @@ pub struct Point<T> {
 
 pub type PointF32 = Point<f32>;
 pub type PointU32 = Point<u32>;
+
+impl Point<f32> {
+    pub fn magnitude(&self) -> f32 {
+        self.dot(&self).sqrt()
+    }
+}
 
 impl<T> Point<T>
 where
@@ -115,6 +121,28 @@ impl<T: Mul<R> + Copy, R: Copy> Mul<R> for &Point<T> {
         Point {
             x: self.x * rhs,
             y: self.y * rhs,
+        }
+    }
+}
+
+impl<T: Div<R>, R: Copy> Div<R> for Point<T> {
+    type Output = Point<<T as Div<R>>::Output>;
+
+    fn div(self, rhs: R) -> Self::Output {
+        Point {
+            x: self.x / rhs,
+            y: self.y / rhs,
+        }
+    }
+}
+
+impl<T: Div<R> + Copy, R: Copy> Div<R> for &Point<T> {
+    type Output = Point<<T as Div<R>>::Output>;
+
+    fn div(self, rhs: R) -> Self::Output {
+        Point {
+            x: self.x / rhs,
+            y: self.y / rhs,
         }
     }
 }
