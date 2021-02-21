@@ -1,9 +1,7 @@
-use crate::math::point::PointF32;
 use crate::math::rect::Rect;
 use crate::simulation::{blob::BlobId, InputEvent, Simulation};
 use femtovg;
-use std::collections::HashMap;
-use winit::event::Event;
+use std::collections::{HashMap, HashSet};
 
 pub struct Renderer {}
 
@@ -80,7 +78,7 @@ impl Game {
 
     pub fn handle_inputs(
         &self,
-        keyboard_inputs: &Vec<winit::event::KeyboardInput>,
+        keys_down: &HashSet<winit::event::VirtualKeyCode>,
     ) -> HashMap<BlobId, Vec<InputEvent>> {
         // TODO This function is not really needed, instead an 'queue_input' or something
         // can be added, that should be called after each input.
@@ -91,18 +89,13 @@ impl Game {
         // InputEvent::FullThrottleForward and not one InputEvent::Forward and
         // InputEvent::FullThrottle/InputEvent::FullThrottleForward).
         // Then we first have to check all combined keys, remove them from vector, or something.
-        for keyboard_input in keyboard_inputs {
-            if keyboard_input.state != winit::event::ElementState::Pressed {
-                continue;
-            }
-            if let Some(virtual_keycode) = keyboard_input.virtual_keycode {
-                match self.keymap.get(&virtual_keycode) {
-                    Some((blob_id, mut event)) => input_events
-                        .entry(*blob_id)
-                        .or_insert(Vec::new())
-                        .push(event),
-                    None => (),
-                }
+        for key in keys_down {
+            match self.keymap.get(&key) {
+                Some((blob_id, mut event)) => input_events
+                    .entry(*blob_id)
+                    .or_insert(Vec::new())
+                    .push(event),
+                None => (),
             }
         }
 

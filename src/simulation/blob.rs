@@ -40,7 +40,7 @@ impl Blob {
         if self.velocity.magnitude().abs() > f32::EPSILON {
             self.force -= self.velocity / self.velocity.magnitude()
                 * self.velocity.dot(&self.velocity)
-                * 0.1
+                * 0.2
                 * self.mass
                 * dt;
         }
@@ -49,7 +49,7 @@ impl Blob {
             self.angular_force -= self.angular_velocity.signum()
                 * self.angular_velocity
                 * self.angular_velocity
-                * 200.0
+                * 1000.0
                 * dt; // Or something
         }
 

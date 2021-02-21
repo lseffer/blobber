@@ -7,9 +7,10 @@ mod stopwatch;
 use femtovg::Color;
 use femtovg::{renderer::OpenGl, Canvas};
 use glutin::ContextBuilder;
+use std::collections::HashSet;
 use std::time::{Duration, Instant};
 use winit::{
-    event::{Event, WindowEvent},
+    event::{Event, KeyboardInput, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
@@ -43,15 +44,38 @@ fn main() {
     let mut game = game::Game::new();
     let mut canvas = Canvas::new(renderer).expect("Cannot create canvas");
 
-    let mut keyboard_inputs = Vec::<winit::event::KeyboardInput>::new();
+    // More complicated way to keep track of inputs could be implemented. That
+    // keeps track of current keys down, what keys has been released.
+    let mut keys_down = HashSet::<winit::event::VirtualKeyCode>::new();
 
     event_loop.run(move |event, _, control_flow| {
+        use winit::event::ElementState;
+
         *control_flow = ControlFlow::Poll;
         let window = windowed_context.window();
         match event {
             Event::WindowEvent { ref event, .. } => match event {
-                WindowEvent::KeyboardInput { input, .. } => {
-                    keyboard_inputs.push(*input);
+                WindowEvent::KeyboardInput {
+                    input:
+                        KeyboardInput {
+                            virtual_keycode: Some(virtual_code),
+                            state: ElementState::Pressed,
+                            ..
+                        },
+                    ..
+                } => {
+                    keys_down.insert(*virtual_code);
+                }
+                WindowEvent::KeyboardInput {
+                    input:
+                        winit::event::KeyboardInput {
+                            virtual_keycode: Some(virtual_code),
+                            state: ElementState::Released,
+                            ..
+                        },
+                    ..
+                } => {
+                    keys_down.remove(virtual_code);
                 }
                 WindowEvent::Resized(physical_size) => {
                     windowed_context.resize(*physical_size);
@@ -72,8 +96,7 @@ fn main() {
                     // a menu want to do something with them.
                     // This can of course also just be gathered by 'game', even as early as when
                     // the key is pressed.
-                    let simulation_inputs = game.handle_inputs(&keyboard_inputs);
-                    keyboard_inputs.clear();
+                    let simulation_inputs = game.handle_inputs(&keys_down);
                     game.simulation
                         .simulate(&simulation_inputs, dt.as_secs_f32());
                     t += dt;
